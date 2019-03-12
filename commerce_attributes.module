@@ -1,0 +1,17 @@
+<?php
+
+/**
+ * @file
+ * Commerce Attributes module.
+ */
+
+
+use Drupal\Core\Entity\EntityTypeInterface;
+
+/**
+ * @param EntityTypeInterface[] $entity_types
+ */
+function commerce_attributes_entity_type_build(&$entity_types) {
+  $entity_types['commerce_product_attribute']->setClass('Drupal\commerce_attributes\Entity\ProductAttribute');
+  $entity_types['commerce_product_attribute_value']->setClass('Drupal\commerce_attributes\Entity\ProductAttributeValue');
+}
