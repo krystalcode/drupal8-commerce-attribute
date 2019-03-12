@@ -24,8 +24,8 @@ use Drupal\commerce_attributes\Entity\ProductAttributeInterface;
  *     "access" = "Drupal\commerce\CommerceBundleAccessControlHandler",
  *     "list_builder" = "Drupal\commerce_product\ProductAttributeListBuilder",
  *     "form" = {
- *       "add" = "Drupal\commerce_product\Form\ProductAttributeForm",
- *       "edit" = "Drupal\commerce_product\Form\ProductAttributeForm",
+ *       "add" = "Drupal\commerce_attributes\Form\ProductAttributeForm",
+ *       "edit" = "Drupal\commerce_attributes\Form\ProductAttributeForm",
  *       "delete" = "Drupal\commerce_product\Form\ProductAttributeDeleteForm",
  *     },
  *     "route_provider" = {
