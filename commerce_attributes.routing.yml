@@ -1,0 +1,14 @@
+commerce_attributes.commerce_product_attribute_value_add:
+  path: '/admin/commerce/product-attributes/manage/{commerce_product_attribute}/values/add'
+  defaults:
+    _entity_form: commerce_product_attribute_value.add
+    _title: 'Add Attribute Value'
+  requirements:
+     _permission: 'access commerce administration pages'
+commerce_attributes.commerce_product_attribute_value_edit:
+  path: '/admin/commerce/product-attributes/manage/{commerce_product_attribute}/values/{commerce_product_attribute_value}/edit'
+  defaults:
+    _entity_form: commerce_product_attribute_value.edit
+    _title: 'Edit Attribute Value'
+  requirements:
+     _permission: 'access commerce administration pages'

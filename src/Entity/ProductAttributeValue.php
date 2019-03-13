@@ -23,11 +23,15 @@ use Drupal\commerce_product\Entity\ProductAttributeValueInterface;
  *   ),
  *   bundle_label = @Translation("Product attribute"),
  *   handlers = {
- *     "event" = "Drupal\commerce_attributes\Event\ProductAttributeValueEvent",
+ *     "event" = "Drupal\commerce_product\Event\ProductAttributeValueEvent",
  *     "storage" = "Drupal\commerce_product\ProductAttributeValueStorage",
  *     "access" = "Drupal\commerce_product\ProductAttributeValueAccessControlHandler",
  *     "view_builder" = "Drupal\Core\Entity\EntityViewBuilder",
  *     "views_data" = "Drupal\commerce\CommerceEntityViewsData",
+ *     "form" = {
+ *       "add" = "Drupal\commerce_attributes\Form\ProductAttributeValueForm",
+ *       "edit" = "Drupal\commerce_attributes\Form\ProductAttributeValueForm",
+ *     },
  *     "translation" = "Drupal\content_translation\ContentTranslationHandler"
  *   },
  *   admin_permission = "administer commerce_product_attribute",
@@ -42,6 +46,10 @@ use Drupal\commerce_product\Entity\ProductAttributeValueInterface;
  *     "langcode" = "langcode",
  *     "uuid" = "uuid",
  *   },
+ *    links = {
+ *     "add-form" = "/admin/commerce/product-attributes/manage/{commerce_product_attribute}/values/add",
+ *     "edit-form" = "/admin/commerce/product-attributes/manage/{commerce_product_attribute}/values/{commerce_product_attribute_value}/edit",
+ *    },
  *   bundle_entity_type = "commerce_product_attribute",
  *   field_ui_base_route = "entity.commerce_product_attribute.edit_form",
  * )
