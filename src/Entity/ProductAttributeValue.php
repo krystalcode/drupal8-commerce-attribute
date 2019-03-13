@@ -7,7 +7,7 @@ use Drupal\Core\Entity\EntityChangedTrait;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\commerce\Entity\CommerceContentEntityBase;
-use Drupal\commerce_attributes\Entity\ProductAttributeValueInterface;
+use Drupal\commerce_product\Entity\ProductAttributeValueInterface;
 
 /**
  * Defines the product attribute value entity class.

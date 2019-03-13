@@ -9,12 +9,13 @@
 use Drupal\Core\Entity\EntityTypeInterface;
 
 /**
- * @param EntityTypeInterface[] $entity_types
+ * Implements hook_entity_type_build().
  */
 function commerce_attributes_entity_type_build(&$entity_types) {
   $entity_types['commerce_product_attribute']->setClass('Drupal\commerce_attributes\Entity\ProductAttribute');
   $entity_types['commerce_product_attribute_value']->setClass('Drupal\commerce_attributes\Entity\ProductAttributeValue');
-  $entity_types['commerce_product_attribute_value']->setHandlerClass('event', 'Drupal\commerce_attributes\Event\ProductAttributeValueEvent');
   $entity_types['commerce_product_attribute']->setFormClass('add', 'Drupal\commerce_attributes\Form\ProductAttributeForm');
   $entity_types['commerce_product_attribute']->setFormClass('edit', 'Drupal\commerce_attributes\Form\ProductAttributeForm');
 }
+
+

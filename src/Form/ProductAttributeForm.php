@@ -4,7 +4,7 @@ namespace Drupal\commerce_attributes\Form;
 
 use Drupal\commerce\EntityHelper;
 use Drupal\commerce\InlineFormManager;
-use Drupal\commerce_attributes\ProductAttributeFieldManagerInterface;
+use Drupal\commerce_product\ProductAttributeFieldManagerInterface;
 use Drupal\Component\Utility\Html;
 use Drupal\Core\Entity\BundleEntityFormBase;
 use Drupal\Core\Entity\EntityTypeInterface;
@@ -18,7 +18,7 @@ class ProductAttributeForm extends CommerceBundleEntityFormBase {
   /**
    * The attribute field manager.
    *
-   * @var \Drupal\commerce_attributes\ProductAttributeFieldManagerInterface
+   * @var \Drupal\commerce_product\ProductAttributeFieldManagerInterface
    */
   protected $attributeFieldManager;
 
@@ -32,7 +32,7 @@ class ProductAttributeForm extends CommerceBundleEntityFormBase {
   /**
    * Constructs a new ProductAttributeForm object.
    *
-   * @param \Drupal\commerce_attributes\ProductAttributeFieldManagerInterface $attribute_field_manager
+   * @param \Drupal\commerce_product\ProductAttributeFieldManagerInterface $attribute_field_manager
    *   The attribute field manager.
    * @param \Drupal\commerce\InlineFormManager $inline_form_manager
    *   The inline form manager.
