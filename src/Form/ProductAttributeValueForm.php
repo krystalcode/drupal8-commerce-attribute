@@ -5,10 +5,10 @@ namespace Drupal\commerce_attributes\Form;
 use Drupal\Core\Entity\ContentEntityForm;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Routing\RouteMatchInterface;
-use \Drupal\Core\Url;
+use Drupal\Core\Url;
 
 /**
- * Defines the add/edit/duplicate form for product variations.
+ * Defines the add/edit/duplicate form for product attribute value.
  */
 class ProductAttributeValueForm extends ContentEntityForm {
 

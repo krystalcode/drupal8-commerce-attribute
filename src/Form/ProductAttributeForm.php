@@ -6,13 +6,15 @@ use Drupal\commerce\EntityHelper;
 use Drupal\commerce\InlineFormManager;
 use Drupal\commerce_product\ProductAttributeFieldManagerInterface;
 use Drupal\Component\Utility\Html;
-use Drupal\Core\Entity\BundleEntityFormBase;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\commerce\Form\CommerceBundleEntityFormBase;
 use Drupal\commerce\EntityTraitManagerInterface;
 
+/**
+ * Defines the add/edit/duplicate form for product attribute.
+ */
 class ProductAttributeForm extends CommerceBundleEntityFormBase {
 
   /**
@@ -30,12 +32,21 @@ class ProductAttributeForm extends CommerceBundleEntityFormBase {
   protected $inlineFormManager;
 
   /**
+   * The trait manager.
+   *
+   * @var \Drupal\commerce\EntityTraitManagerInterface
+   */
+  protected $traitManager;
+
+  /**
    * Constructs a new ProductAttributeForm object.
    *
    * @param \Drupal\commerce_product\ProductAttributeFieldManagerInterface $attribute_field_manager
    *   The attribute field manager.
    * @param \Drupal\commerce\InlineFormManager $inline_form_manager
    *   The inline form manager.
+   * @param \Drupal\commerce\EntityTraitManagerInterface $trait_manager
+   *   The trait manager.
    */
   public function __construct(ProductAttributeFieldManagerInterface $attribute_field_manager, InlineFormManager $inline_form_manager, EntityTraitManagerInterface $trait_manager) {
     $this->attributeFieldManager = $attribute_field_manager;

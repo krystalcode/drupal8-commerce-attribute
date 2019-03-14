@@ -5,9 +5,6 @@
  * Commerce Attributes module.
  */
 
-
-use Drupal\Core\Entity\EntityTypeInterface;
-
 /**
  * Implements hook_entity_type_build().
  */
@@ -23,6 +20,22 @@ function commerce_attributes_entity_type_alter(&$entity_types) {
 /**
  * Implements hook_ENTITY_TYPE_update().
  */
-function commerce_attributes_commerce_product_attribute_update($entity) {
-  $attribute = $entity->id();
+function commerce_attributes_commerce_product_attribute_value_update($entity) {
+  // Updates the variation price associated with the attribute value.
+  $attributePrice = $entity->get('price')->getValue();
+  if (!empty($attributePrice)) {
+    $priceHandler = \Drupal::service('commerce_attributes.variation_price_handler');
+    $priceHandler->updateProductVariationsPrice($entity);
+  }
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_update().
+ */
+function commerce_attributes_commerce_product_variation_presave($entity) {
+  // Updates the variation price to be the sum of its attributes which have has
+  // price trait enabled.
+  $priceHandler = \Drupal::service('commerce_attributes.variation_price_handler');
+  $newPrice = $priceHandler->getProductVariationPrice($entity);
+  $entity->setPrice($newPrice);
 }

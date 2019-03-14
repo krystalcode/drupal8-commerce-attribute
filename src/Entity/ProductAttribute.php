@@ -2,10 +2,8 @@
 
 namespace Drupal\commerce_attributes\Entity;
 
-use Drupal\Core\Config\Entity\ConfigEntityBundleBase;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\commerce\Entity\CommerceBundleEntityBase;
-use Drupal\commerce_attributes\Entity\ProductAttributeInterface;
 
 /**
  * Defines the product attribute entity class.
