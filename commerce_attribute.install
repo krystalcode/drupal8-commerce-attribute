@@ -1,0 +1,18 @@
+<?php
+
+/**
+ * @file
+ * Install and uninstall functions for the commerce_attribute module.
+ */
+
+use Drupal\field\Entity\FieldStorageConfig;
+
+/**
+ * Implements hook_uninstall().
+ */
+function commerce_attribute_uninstall() {
+  if (!empty(FieldStorageConfig::loadByName('commerce_product', 'price'))) {
+    FieldStorageConfig::loadByName('commerce_product', 'price')->delete();
+  }
+  \Drupal::configFactory()->getEditable('views.view.attribute_values')->delete();
+}

@@ -6,23 +6,25 @@
  */
 
 use Drupal\entity\BundleFieldDefinition;
+use Drupal\field\Entity\FieldStorageConfig;
+use Drupal\Core\Form\FormStateInterface;
 
 /**
  * Implements hook_entity_type_alter().
  */
-function commerce_attributes_entity_type_alter(&$entity_types) {
-  $entity_types['commerce_product_attribute']->setClass('Drupal\commerce_attributes\Entity\ProductAttribute');
-  $entity_types['commerce_product_attribute_value']->setClass('Drupal\commerce_attributes\Entity\ProductAttributeValue');
-  $entity_types['commerce_product_attribute']->setFormClass('add', 'Drupal\commerce_attributes\Form\ProductAttributeForm');
-  $entity_types['commerce_product_attribute']->setFormClass('edit', 'Drupal\commerce_attributes\Form\ProductAttributeForm');
-  $entity_types['commerce_product_attribute_value']->setFormClass('add', 'Drupal\commerce_attributes\Form\ProductAttributeValueForm');
-  $entity_types['commerce_product_attribute_value']->setFormClass('edit', 'Drupal\commerce_attributes\Form\ProductAttributeValueForm');
+function commerce_attribute_entity_type_alter(&$entity_types) {
+  $entity_types['commerce_product_attribute']->setClass('Drupal\commerce_attribute\Entity\ProductAttribute');
+  $entity_types['commerce_product_attribute_value']->setClass('Drupal\commerce_attribute\Entity\ProductAttributeValue');
+  $entity_types['commerce_product_attribute']->setFormClass('add', 'Drupal\commerce_attribute\Form\ProductAttributeForm');
+  $entity_types['commerce_product_attribute']->setFormClass('edit', 'Drupal\commerce_attribute\Form\ProductAttributeForm');
+  $entity_types['commerce_product_attribute_value']->setFormClass('add', 'Drupal\commerce_attribute\Form\ProductAttributeValueForm');
+  $entity_types['commerce_product_attribute_value']->setFormClass('edit', 'Drupal\commerce_attribute\Form\ProductAttributeValueForm');
 }
 
 /**
  * Implements hook_ENTITY_TYPE_update().
  */
-function commerce_attributes_commerce_product_attribute_value_update($attribute_value) {
+function commerce_attribute_commerce_product_attribute_value_update($attribute_value) {
 
   // Proceed only if price trait is enabled.
   if (!$attribute_value->hasField('price')) {
@@ -39,39 +41,82 @@ function commerce_attributes_commerce_product_attribute_value_update($attribute_
   }
 
   // Updates the variation price associated with the attribute value.
-  $price_handler = \Drupal::service('commerce_attributes.variation_price_handler');
+  $price_handler = \Drupal::service('commerce_attribute.variation_price_handler');
   $price_handler->updateProductVariationsPrice($attribute_value);
 }
 
 /**
- * Implements hook_ENTITY_TYPE_update().
+ * Implements hook_ENTITY_TYPE_presave().
  */
-function commerce_attributes_commerce_product_variation_presave($variation) {
+function commerce_attribute_commerce_product_variation_presave($variation) {
   $bundle_entity_type_id = $variation->getEntityType()->getBundleEntityType();
   $variation_type = \Drupal::service('entity_type.manager')->getStorage($bundle_entity_type_id)->load($variation->bundle());
   // Proceed only if attribute based price trait is enabled.
   if (!$variation_type->hasTrait('commerce_attribute_variation_price')) {
     return;
   }
+
   // Updates the variation price to be the sum of its attributes which have has
   // price trait enabled.
-  $price_handler = \Drupal::service('commerce_attributes.variation_price_handler');
-  $product_type = $price_handler->getProductTypes($variation_type->id());
-  $product = $variation->get('product_id')->entity;
+  $price_handler = \Drupal::service('commerce_attribute.variation_price_handler');
+  $new_price = $price_handler->getProductVariationPrice($variation);
+  if (!empty($new_price)) {
+    $variation->setPrice($new_price);
+  }
+}
 
-  // Create price field to the product bundle if it does not exists already.
-  if (!$product->hasField('price')) {
+/**
+ * Implements hook_ENTITY_TYPE_presave().
+ */
+function commerce_attribute_commerce_product_variation_type_presave($variation_type) {
+  $has_attribute_price_trait = $variation_type->hasTrait('commerce_attribute_variation_price');
+
+  // Add base price field to product type if attribute pricing is enabled for
+  // variation.
+  $price_handler = \Drupal::service('commerce_attribute.variation_price_handler');
+  $product_type = $price_handler->getProductTypes($variation_type->id());
+  $price_storage = FieldStorageConfig::loadByName('commerce_product', 'price');
+  if (!$price_storage && $has_attribute_price_trait) {
     $field_definition = BundleFieldDefinition::create('commerce_price')
       ->setLabel(t('Price'))
       ->setRequired(TRUE);
     $field_definition->setTargetEntityTypeId('commerce_product');
-    $field_definition->setTargetBundle($product->bundle());
+    $field_definition->setTargetBundle($product_type->id());
     $field_definition->setName('price');
     \Drupal::service('commerce.configurable_field_manager')->createField($field_definition);
   }
+  elseif ($price_storage && !$has_attribute_price_trait) {
+    FieldStorageConfig::loadByName('commerce_product', 'price')->delete();
+  }
+}
 
-  $new_price = $price_handler->getProductVariationPrice($variation);
-  if (!empty($new_price)) {
-    $variation->setPrice($new_price);
+/**
+ * Implements hook_form_alter().
+ */
+function commerce_attribute_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+  if (substr($form_id, 0, 26) == 'commerce_product_variation') {
+    $product = \Drupal::routeMatch()->getParameter('commerce_product');
+    if (empty($product)) {
+      return;
+    }
+
+    $product_type = Drupal::service('entity_type.manager')->getStorage('commerce_product_type')->load($product->bundle());
+    $variation_type = \Drupal::service('entity_type.manager')->getStorage('commerce_product_variation_type')->load($product_type->getVariationTypeId());
+    // Proceed only if attribute based price trait is enabled.
+    if (!$variation_type->hasTrait('commerce_attribute_variation_price')) {
+      return;
+    }
+    $form['price']['widget']['0']['#disabled'] = TRUE;
+
+    // Set the default value for price field if its a add form.
+    $current_route_name = \Drupal::routeMatch()->getRouteName();
+    if ($current_route_name == 'entity.commerce_product_variation.add_form') {
+      // Set the default value for price field as the product base price
+      // for add form.
+      $form['price']['widget']['0']['#default_value'] = [
+        'number' => $product->get('price')->first()->toPrice()->getNumber(),
+        'currency_code' => $product->get('price')->first()->toPrice()->getCurrencyCode(),
+      ];
+    }
   }
 }

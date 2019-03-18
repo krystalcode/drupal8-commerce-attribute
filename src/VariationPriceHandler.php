@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\commerce_attributes;
+namespace Drupal\commerce_attribute;
 
 use Drupal\commerce_product\Entity\ProductVariation;
 use Drupal\commerce_price\Price;
@@ -8,8 +8,8 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\EntityManagerInterface;
 use Drupal\commerce_product\ProductAttributeFieldManagerInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
-use Drupal\commerce_attributes\Entity\ProductAttributeValue;
-use Drupal\commerce_attributes\Entity\ProductAttribute;
+use Drupal\commerce_attribute\Entity\ProductAttributeValue;
+use Drupal\commerce_attribute\Entity\ProductAttribute;
 use Drupal\Core\Entity\Query\QueryFactory;
 
 /**
@@ -70,7 +70,7 @@ class VariationPriceHandler {
    *   The product variation types.
    * @param string $attribute
    *   The attribute machine name.
-   * @param int $attributeValue
+   * @param int $attribute_value
    *   The Attribue value id.
    *
    * @return array
@@ -90,7 +90,7 @@ class VariationPriceHandler {
   /**
    * Recalculates the product variation price based on the attribute price.
    *
-   * @param Drupal\commerce_attributes\Entity\ProductAttributeValue $attributeValue
+   * @param Drupal\commerce_attribute\Entity\ProductAttributeValue $attribute_value
    *   The ProductAttributeValue entity.
    */
   public function updateProductVariationsPrice(ProductAttributeValue $attribute_value) {
@@ -125,7 +125,7 @@ class VariationPriceHandler {
   /**
    * Retrieve all product variation types associated with the attribute.
    *
-   * @param Drupal\commerce_attributes\Entity\ProductAttribute $productAttribute
+   * @param Drupal\commerce_attribute\Entity\ProductAttribute $product_attribute
    *   The ProductAttribute Entity, which is being updated.
    *
    * @return array
@@ -170,6 +170,8 @@ class VariationPriceHandler {
    *   The variation type machine name.
    * @param Drupal\commerce_product\Entity\ProductVariation $variation
    *   The commerce product variation.
+   * @param string $currency
+   *   The currency string.
    *
    * @return int
    *   Sum of all attribute values associated with a variation.
@@ -195,7 +197,7 @@ class VariationPriceHandler {
   }
 
   /**
-   * Updates the product variation price
+   * Updates the product variation price.
    *
    * @param Drupal\commerce_product\Entity\ProductVariation $variation
    *   The commerce product variation.
@@ -204,8 +206,7 @@ class VariationPriceHandler {
    *   The price object.
    */
   public function getProductVariationPrice(ProductVariation $variation) {
-    $product_id = $variation->get('product_id')->getValue()['0']['target_id'];
-    $product = $this->entityManager->getStorage('commerce_product')->load($product_id);
+    $product = $variation->get('product_id')->entity;
     if (empty($product->get('price')->first())) {
       return NULL;
     }
@@ -233,6 +234,7 @@ class VariationPriceHandler {
         return $product_type;
       }
     }
-    return;
+    return NULL;
   }
+
 }

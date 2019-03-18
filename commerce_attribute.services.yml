@@ -1,4 +1,4 @@
 services:
   commerce_attribute.variation_price_handler:
-    class: Drupal\commerce_attributes\VariationPriceHandler
+    class: Drupal\commerce_attribute\VariationPriceHandler
     arguments: ['@logger.factory', '@entity.manager', '@entity_type.manager', '@commerce_product.attribute_field_manager', '@entity.query']

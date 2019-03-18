@@ -2,7 +2,6 @@
 
 namespace Drupal\commerce_attribute\Plugin\Commerce\EntityTrait;
 
-use Drupal\entity\BundleFieldDefinition;
 use Drupal\commerce\Plugin\Commerce\EntityTrait\EntityTraitBase;
 
 /**
