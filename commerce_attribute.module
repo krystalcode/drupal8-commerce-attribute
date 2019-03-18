@@ -59,7 +59,7 @@ function commerce_attribute_commerce_product_variation_presave($variation) {
   // Updates the variation price to be the sum of its attributes which have has
   // price trait enabled.
   $price_handler = \Drupal::service('commerce_attribute.variation_price_handler');
-  $new_price = $price_handler->getProductVariationPrice($variation);
+  $new_price = $price_handler->recalculateVariationPrice($variation);
   if (!empty($new_price)) {
     $variation->setPrice($new_price);
   }

@@ -64,6 +64,30 @@ class VariationPriceHandler {
   }
 
   /**
+   * Provides the product variation price based on attributes.
+   *
+   * @param Drupal\commerce_product\Entity\ProductVariation $variation
+   *   The commerce product variation.
+   *
+   * @return Drupal\commerce_price\Price
+   *   The price object.
+   */
+  public function recalculateVariationPrice(ProductVariation $variation) {
+    $product = $variation->get('product_id')->entity;
+    if (empty($product->get('price')->first())) {
+      return NULL;
+    }
+
+    $base_price = $product->get('price')->first()->toPrice();
+    // Get the total price of all attributes associated with the product
+    // variation type.
+    $currency = $base_price->getCurrencyCode();
+    $attribute_price = $this->getAttributePriceSum($variation->bundle(), $variation, $currency);
+    $new_price = $base_price->add($attribute_price);
+    return $new_price;
+  }
+
+  /**
    * Retrieves the product variations.
    *
    * @param array $types
@@ -194,30 +218,6 @@ class VariationPriceHandler {
       }
     }
     return $attribute_total_price;
-  }
-
-  /**
-   * Updates the product variation price.
-   *
-   * @param Drupal\commerce_product\Entity\ProductVariation $variation
-   *   The commerce product variation.
-   *
-   * @return Drupal\commerce_price\Price
-   *   The price object.
-   */
-  public function getProductVariationPrice(ProductVariation $variation) {
-    $product = $variation->get('product_id')->entity;
-    if (empty($product->get('price')->first())) {
-      return NULL;
-    }
-
-    $base_price = $product->get('price')->first()->toPrice();
-    // Get the total price of all attributes associated with the product
-    // variation type.
-    $currency = $base_price->getCurrencyCode();
-    $attribute_price = $this->getAttributePriceSum($variation->bundle(), $variation, $currency);
-    $new_price = $base_price->add($attribute_price);
-    return $new_price;
   }
 
   /**
