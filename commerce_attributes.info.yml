@@ -1,7 +1,0 @@
-name: Commerce Attributes
-type: module
-description: Provides price, stock and weight fields for commerce product attributes.
-package: Commerce (contrib)
-core: 8.x
-dependencies:
-  - commerce:commerce_product

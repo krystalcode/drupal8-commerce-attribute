@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\commerce_attributes\Form;
+namespace Drupal\commerce_attribute\Form;
 
 use Drupal\Core\Entity\ContentEntityForm;
 use Drupal\Core\Form\FormStateInterface;

@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\commerce_attributes\Entity;
+namespace Drupal\commerce_attribute\Entity;
 
 use Drupal\Core\Entity\EntityChangedTrait;
 use Drupal\Core\Entity\EntityTypeInterface;
@@ -28,8 +28,8 @@ use Drupal\commerce_product\Entity\ProductAttributeValueInterface;
  *     "view_builder" = "Drupal\Core\Entity\EntityViewBuilder",
  *     "views_data" = "Drupal\commerce\CommerceEntityViewsData",
  *     "form" = {
- *       "add" = "Drupal\commerce_attributes\Form\ProductAttributeValueForm",
- *       "edit" = "Drupal\commerce_attributes\Form\ProductAttributeValueForm",
+ *       "add" = "Drupal\commerce_attribute\Form\ProductAttributeValueForm",
+ *       "edit" = "Drupal\commerce_attribute\Form\ProductAttributeValueForm",
  *     },
  *     "translation" = "Drupal\content_translation\ContentTranslationHandler"
  *   },

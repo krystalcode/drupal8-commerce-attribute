@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\commerce_attributes\Entity;
+namespace Drupal\commerce_attribute\Entity;
 
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\commerce\Entity\CommerceBundleEntityBase;
@@ -22,8 +22,8 @@ use Drupal\commerce\Entity\CommerceBundleEntityBase;
  *     "access" = "Drupal\commerce\CommerceBundleAccessControlHandler",
  *     "list_builder" = "Drupal\commerce_product\ProductAttributeListBuilder",
  *     "form" = {
- *       "add" = "Drupal\commerce_attributes\Form\ProductAttributeForm",
- *       "edit" = "Drupal\commerce_attributes\Form\ProductAttributeForm",
+ *       "add" = "Drupal\commerce_attribute\Form\ProductAttributeForm",
+ *       "edit" = "Drupal\commerce_attribute\Form\ProductAttributeForm",
  *       "delete" = "Drupal\commerce_product\Form\ProductAttributeDeleteForm",
  *     },
  *     "route_provider" = {

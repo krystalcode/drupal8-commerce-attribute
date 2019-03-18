@@ -10,6 +10,7 @@ use Drupal\commerce_product\ProductAttributeFieldManagerInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\commerce_attributes\Entity\ProductAttributeValue;
 use Drupal\commerce_attributes\Entity\ProductAttribute;
+use Drupal\Core\Entity\Query\QueryFactory;
 
 /**
  * Handles the Variation price calculations.
@@ -45,13 +46,21 @@ class VariationPriceHandler {
   protected $attributeFieldManager;
 
   /**
+   * Drupal\Core\Entity\Query\QueryFactory definition.
+   *
+   * @var \Drupal\Core\Entity\Query\QueryFactory
+   */
+  protected $variationStorage;
+
+  /**
    * Constructor.
    */
-  public function __construct(LoggerChannelFactoryInterface $logger_factory, EntityManagerInterface $entity_manager, EntityTypeManagerInterface $entity_type_manager, ProductAttributeFieldManagerInterface $attribute_field_manager) {
+  public function __construct(LoggerChannelFactoryInterface $logger_factory, EntityManagerInterface $entity_manager, EntityTypeManagerInterface $entity_type_manager, ProductAttributeFieldManagerInterface $attribute_field_manager, QueryFactory $entity_query) {
     $this->logger = $logger_factory->get('system');
     $this->entityTypeManager = $entity_type_manager;
     $this->entityManager = $entity_manager;
     $this->attributeFieldManager = $attribute_field_manager;
+    $this->variationStorage = $entity_query;
   }
 
   /**
@@ -67,17 +76,15 @@ class VariationPriceHandler {
    * @return array
    *   Array of variations id.
    */
-  public function getProductVariation(array $types, $attribute, $attributeValue) {
+  public function getProductVariations(array $types, $attribute, $attribute_value) {
     // The attribute field name of variation type will always be in the
     // format of `attrubute_attribute_machine_name`.
-    $attributefieldName = 'attribute_' . $attribute;
+    $attribute_field_name = 'attribute_' . $attribute;
 
     // Get all variations associated with an particular attribute value.
-    $query = \Drupal::entityQuery('commerce_product_variation')
+    return $this->variationStorage->get('commerce_product_variation')
       ->condition('type', $types, 'IN')
-      ->condition($attributefieldName, $attributeValue);
-    $variations = $query->execute();
-    return $variations;
+      ->condition($attribute_field_name, $attribute_value)->execute();
   }
 
   /**
@@ -86,32 +93,30 @@ class VariationPriceHandler {
    * @param Drupal\commerce_attributes\Entity\ProductAttributeValue $attributeValue
    *   The ProductAttributeValue entity.
    */
-  public function updateProductVariationsPrice(ProductAttributeValue $attributeValue) {
-    $attribute = $attributeValue->getAttribute();
+  public function updateProductVariationsPrice(ProductAttributeValue $attribute_value) {
+    $attribute = $attribute_value->getAttribute();
 
     // Get all variation type associated with the attribute
     // which is being updated.
-    $variationTypes = $this->getAllVariationTypes($attribute);
-    if (empty($variationTypes)) {
+    $variation_types = $this->getAllVariationTypes($attribute);
+    if (empty($variation_types)) {
       return FALSE;
     }
 
     // Get all product variations associated with the attribute value which is
     // being updated.
-    $variations = $this->getProductVariation($variationTypes, $attribute->id(), $attributeValue->id());
+    $variations = $this->getProductVariations($variation_types, $attribute->id(), $attribute_value->id());
     foreach ($variations as $variation_id) {
       $product_variation = $this->entityManager->getStorage('commerce_product_variation')->load($variation_id);
-      $product_id = $product_variation->get('product_id')->getValue()['0']['target_id'];
-      $product = $this->entityManager->getStorage('commerce_product')->load($product_id);
-      $productBaseCost = $product->get('field_price')->getValue()['0']['number'];
+      $product = $product_variation->get('product_id')->entity;
+      $base_price = $product->get('price')->first()->toPrice();
 
       // Get the total price of all attributes associated with the product
       // variation type.
-      $attributePrice = $this->getAttributePriceSum($product_variation->bundle(), $product_variation);
-      $newPrice = $productBaseCost + $attributePrice;
-      $currency = $product->get('field_price')->getValue()['0']['currency_code'];
-      $newPrice = new Price((string) $newPrice, $currency);
-      $product_variation->setPrice($newPrice);
+      $currency = $base_price->getCurrencyCode();
+      $attribute_rice = $this->getAttributePriceSum($product_variation->bundle(), $product_variation, $currency);
+      $price = $base_price->add($attribute_rice);
+      $product_variation->setPrice($price);
       $product_variation->save();
     }
     return TRUE;
@@ -126,11 +131,11 @@ class VariationPriceHandler {
    * @return array
    *   Array of all product variations types associated with the attribute.
    */
-  public function getAllVariationTypes(ProductAttribute $productAttribute) {
+  public function getAllVariationTypes(ProductAttribute $product_attribute) {
     $types = [];
-    $usedAttributes = $this->getAllUsedAttributes();
-    foreach ($usedAttributes as $variation_type_id => $attributes) {
-      if (in_array($productAttribute->id(), $attributes)) {
+    $used_attributes = $this->getAllUsedAttributes();
+    foreach ($used_attributes as $variation_type_id => $attributes) {
+      if (in_array($product_attribute->id(), $attributes)) {
         $types[] = $variation_type_id;
       }
     }
@@ -145,15 +150,17 @@ class VariationPriceHandler {
    *   the attributes used as value.
    */
   public function getAllUsedAttributes() {
-    $usedAttributes = [];
+    $used_attributes = [];
     $types = [];
     $variation_type_storage = $this->entityTypeManager->getStorage('commerce_product_variation_type');
     $variation_types = $variation_type_storage->loadMultiple();
     $attribute_field_map = $this->attributeFieldManager->getFieldMap();
     foreach ($variation_types as $variation_type_id => $variation_type) {
-      $usedAttributes[$variation_type_id] = array_column($attribute_field_map[$variation_type_id], 'attribute_id');
+      if ($variation_type->hasTrait('commerce_attribute_variation_price')) {
+        $used_attributes[$variation_type_id] = array_column($attribute_field_map[$variation_type_id], 'attribute_id');
+      }
     }
-    return $usedAttributes;
+    return $used_attributes;
   }
 
   /**
@@ -167,22 +174,24 @@ class VariationPriceHandler {
    * @return int
    *   Sum of all attribute values associated with a variation.
    */
-  public function getAttributePriceSum($variation_type_id, ProductVariation $variation) {
-    $attributeTotalPrice = 0;
-    $usedAttributes = $this->getAllUsedAttributes();
-    $variationTypeAttributes = $usedAttributes[$variation_type_id];
-    foreach ($variationTypeAttributes as $attribute) {
+  public function getAttributePriceSum($variation_type_id, ProductVariation $variation, $currency) {
+    $attribute_total_price = new Price((string) 0, $currency);
+    $used_attributes = $this->getAllUsedAttributes();
+    if (empty($used_attributes)) {
+      return $attribute_total_price;
+    }
+    $variation_type_attributes = $used_attributes[$variation_type_id];
+    foreach ($variation_type_attributes as $attribute) {
       // The attribute field name of variation type will always be in the
       // format of `attrubute_attribute_machine_name`.
-      $attributefieldName = 'attribute_' . $attribute;
-      $attributeValueID = $variation->get($attributefieldName)->getValue()['0']['target_id'];
-      $productAttributeValue = $this->entityManager->getStorage('commerce_product_attribute_value')->load($attributeValueID);
-      if (!empty($productAttributeValue->get('price')->getValue()['0']['number'])) {
-        $attributePrice = $productAttributeValue->get('price')->getValue()['0']['number'];
-        $attributeTotalPrice += $attributePrice;
+      $attribute_field_name = 'attribute_' . $attribute;
+      $attribute_value = $variation->get($attribute_field_name)->entity;
+      if (!empty($attribute_value) && $attribute_value->hasField('price')) {
+        $attribute_price = $attribute_value->get('price')->first()->toPrice();
+        $attribute_total_price = $attribute_total_price->add($attribute_price);
       }
     }
-    return $attributeTotalPrice;
+    return $attribute_total_price;
   }
 
   /**
@@ -197,15 +206,33 @@ class VariationPriceHandler {
   public function getProductVariationPrice(ProductVariation $variation) {
     $product_id = $variation->get('product_id')->getValue()['0']['target_id'];
     $product = $this->entityManager->getStorage('commerce_product')->load($product_id);
-    $productBaseCost = $product->get('field_price')->getValue()['0']['number'];
+    if (empty($product->get('price')->first())) {
+      return NULL;
+    }
 
+    $base_price = $product->get('price')->first()->toPrice();
     // Get the total price of all attributes associated with the product
     // variation type.
-    $attributePrice = $this->getAttributePriceSum($variation->bundle(), $variation);
-    $newPrice = $productBaseCost + $attributePrice;
-    $currency = $product->get('field_price')->getValue()['0']['currency_code'];
-    $newPrice = new Price((string) $newPrice, $currency);
-    return $newPrice;
+    $currency = $base_price->getCurrencyCode();
+    $attribute_price = $this->getAttributePriceSum($variation->bundle(), $variation, $currency);
+    $new_price = $base_price->add($attribute_price);
+    return $new_price;
   }
 
+  /**
+   * Retrieves Product Type associated with a variation type.
+   *
+   * @return object
+   *   The product type object.
+   */
+  public function getProductTypes($variation_type_id) {
+    $product_type_storage = $this->entityTypeManager->getStorage('commerce_product_type');
+    $product_types = $product_type_storage->loadMultiple();
+    foreach ($product_types as $product_type_id => $product_type) {
+      if ($variation_type_id == $product_type->getVariationTypeId()) {
+        return $product_type;
+      }
+    }
+    return;
+  }
 }

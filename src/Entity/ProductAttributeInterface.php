@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\commerce_attributes\Entity;
+namespace Drupal\commerce_attribute\Entity;
 
 use Drupal\commerce\Entity\CommerceBundleEntityInterface;
 use Drupal\commerce_product\Entity\ProductAttributeInterface as BaseProductAttributeInterface;

@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\commerce_attributes\Form;
+namespace Drupal\commerce_attribute\Form;
 
 use Drupal\commerce\EntityHelper;
 use Drupal\commerce\InlineFormManager;
@@ -70,7 +70,7 @@ class ProductAttributeForm extends CommerceBundleEntityFormBase {
    */
   public function form(array $form, FormStateInterface $form_state) {
     $form = parent::form($form, $form_state);
-    /** @var \Drupal\commerce_attributes\Entity\ProductAttributeInterface $attribute */
+    /** @var \Drupal\commerce_attribute\Entity\ProductAttributeInterface $attribute */
     $attribute = $this->entity;
 
     $form['label'] = [
@@ -151,264 +151,21 @@ class ProductAttributeForm extends CommerceBundleEntityFormBase {
         '#default_value' => $enabled,
       ];
     }
-    // The attribute acts as a bundle for attribute values, so the values can't
-    // be created until the attribute is saved.
-    if (!$attribute->isNew()) {
-      $form = $this->buildValuesForm($form, $form_state);
-    }
 
     return $form;
   }
 
   /**
-   * Builds the attribute values form.
-   *
-   * @param array $form
-   *   An associative array containing the structure of the form.
-   * @param \Drupal\Core\Form\FormStateInterface $form_state
-   *   The current state of the form.
-   *
-   * @return array
-   *   The attribute values form.
+   * {@inheritdoc}
    */
-  public function buildValuesForm(array $form, FormStateInterface $form_state) {
-    /** @var \Drupal\commerce_product\Entity\ProductAttributeInterface $attribute */
-    $attribute = $this->entity;
-    $values = $attribute->getValues();
-    $user_input = $form_state->getUserInput();
-    // Reorder the values by name, if requested.
-    if ($form_state->get('reset_alphabetical')) {
-      $value_names = EntityHelper::extractLabels($values);
-      asort($value_names);
-      foreach (array_keys($value_names) as $weight => $id) {
-        $values[$id]->setWeight($weight);
-      }
-    }
-    // The value map allows new values to be added and removed before saving.
-    // An array in the $index => $id format. $id is '_new' for unsaved values.
-    $value_map = (array) $form_state->get('value_map');
-    if (empty($value_map)) {
-      $value_map = $values ? array_keys($values) : ['_new'];
-      $form_state->set('value_map', $value_map);
-    }
-
-    $wrapper_id = Html::getUniqueId('product-attribute-values-ajax-wrapper');
-    $form['values'] = [
-      '#type' => 'table',
-      '#header' => [
-        ['data' => $this->t('Value'), 'colspan' => 2],
-        $this->t('Weight'),
-        $this->t('Operations'),
-      ],
-      '#tabledrag' => [
-        [
-          'action' => 'order',
-          'relationship' => 'sibling',
-          'group' => 'product-attribute-value-order-weight',
-        ],
-      ],
-      '#weight' => 5,
-      '#prefix' => '<div id="' . $wrapper_id . '">',
-      '#suffix' => '</div>',
-      // #input defaults to TRUE, which breaks file fields on the value form.
-      // This table is used for visual grouping only, the element itself
-      // doesn't have any values of its own that need processing.
-      '#input' => FALSE,
-    ];
-    // Make the weight list always reflect the current number of values.
-    // Taken from WidgetBase::formMultipleElements().
-    $max_weight = count($value_map);
-
-    foreach ($value_map as $index => $id) {
-      $value_form = &$form['values'][$index];
-      // The tabledrag element is always added to the first cell in the row,
-      // so we add an empty cell to guide it there, for better styling.
-      $value_form['#attributes']['class'][] = 'draggable';
-      $value_form['tabledrag'] = [
-        '#markup' => '',
-      ];
-      if ($id == '_new') {
-        $value = $this->entityTypeManager->getStorage('commerce_product_attribute_value')->create([
-          'attribute' => $attribute->id(),
-          'langcode' => $attribute->get('langcode'),
-        ]);
-        $default_weight = $max_weight;
-        $remove_access = TRUE;
-      }
-      else {
-        $value = $values[$id];
-        $default_weight = $value->getWeight();
-        $remove_access = $value->access('delete');
-      }
-      $inline_form = $this->inlineFormManager->createInstance('content_entity', [
-        'skip_save' => TRUE,
-      ], $value);
-
-      $value_form['entity'] = [
-        '#parents' => ['values', $index, 'entity'],
-        '#inline_form' => $inline_form,
-      ];
-      $value_form['entity'] = $inline_form->buildInlineForm($value_form['entity'], $form_state);
-
-      $value_form['weight'] = [
-        '#type' => 'weight',
-        '#title' => $this->t('Weight'),
-        '#title_display' => 'invisible',
-        '#delta' => $max_weight,
-        '#default_value' => $default_weight,
-        '#attributes' => [
-          'class' => ['product-attribute-value-order-weight'],
-        ],
-      ];
-      // Used by SortArray::sortByWeightProperty to sort the rows.
-      if (isset($user_input['values'][$index])) {
-        $input_weight = $user_input['values'][$index]['weight'];
-        // If the weights were just reset, reflect it in the user input.
-        if ($form_state->get('reset_alphabetical')) {
-          $input_weight = $default_weight;
-        }
-        // Make sure the weight is not out of bounds due to removals.
-        if ($user_input['values'][$index]['weight'] > $max_weight) {
-          $input_weight = $max_weight;
-        }
-        // Reflect the updated user input on the element.
-        $value_form['weight']['#value'] = $input_weight;
-
-        $value_form['#weight'] = $input_weight;
-      }
-      else {
-        $value_form['#weight'] = $default_weight;
-      }
-
-      $value_form['remove'] = [
-        '#type' => 'submit',
-        '#name' => 'remove_value' . $index,
-        '#value' => $this->t('Remove'),
-        '#limit_validation_errors' => [],
-        '#submit' => ['::removeValueSubmit'],
-        '#value_index' => $index,
-        '#ajax' => [
-          'callback' => '::valuesAjax',
-          'wrapper' => $wrapper_id,
-        ],
-        '#access' => $remove_access,
-      ];
-    }
-
-    // Sort the values by weight. Ensures weight is preserved on ajax refresh.
-    uasort($form['values'], ['\Drupal\Component\Utility\SortArray', 'sortByWeightProperty']);
-
-    $access_handler = $this->entityTypeManager->getAccessControlHandler('commerce_product_attribute_value');
-    if ($access_handler->createAccess($attribute->id())) {
-      $form['values']['_add_new'] = [
-        '#tree' => FALSE,
-      ];
-      $form['values']['_add_new']['entity'] = [
-        '#type' => 'container',
-        '#wrapper_attributes' => ['colspan' => 2],
-      ];
-      $form['values']['_add_new']['entity']['add_value'] = [
-        '#type' => 'submit',
-        '#value' => $this->t('Add value'),
-        '#submit' => ['::addValueSubmit'],
-        '#limit_validation_errors' => [],
-        '#ajax' => [
-          'callback' => '::valuesAjax',
-          'wrapper' => $wrapper_id,
-        ],
-      ];
-      $form['values']['_add_new']['entity']['reset_alphabetical'] = [
-        '#type' => 'submit',
-        '#value' => $this->t('Reset to alphabetical'),
-        '#submit' => ['::resetAlphabeticalSubmit'],
-        '#limit_validation_errors' => [],
-        '#ajax' => [
-          'callback' => '::valuesAjax',
-          'wrapper' => $wrapper_id,
-        ],
-      ];
-      $form['values']['_add_new']['operations'] = [
-        'data' => [],
-      ];
-    }
-
-    return $form;
-  }
-
-  /**
-   * Ajax callback for value operations.
-   */
-  public function valuesAjax(array $form, FormStateInterface $form_state) {
-    return $form['values'];
-  }
-
-  /**
-   * Submit callback for adding a new value.
-   */
-  public function addValueSubmit(array $form, FormStateInterface $form_state) {
-    $value_map = (array) $form_state->get('value_map');
-    $value_map[] = '_new';
-    $form_state->set('value_map', $value_map);
-    $form_state->setRebuild();
-  }
-
-  /**
-   * Submit callback for resetting attribute value ordering to alphabetical.
-   */
-  public function resetAlphabeticalSubmit(array $form, FormStateInterface $form_state) {
-    $form_state->set('reset_alphabetical', TRUE);
-    $form_state->setRebuild();
-  }
-
-  /**
-   * Submit callback for removing a value.
-   */
-  public function removeValueSubmit(array $form, FormStateInterface $form_state) {
-    $value_index = $form_state->getTriggeringElement()['#value_index'];
-    $value_map = (array) $form_state->get('value_map');
-    $value_id = $value_map[$value_index];
-    unset($value_map[$value_index]);
-    $form_state->set('value_map', $value_map);
-    // Non-new values also need to be deleted from storage.
-    if ($value_id != '_new') {
-      $delete_queue = (array) $form_state->get('delete_queue');
-      $delete_queue[] = $value_id;
-      $form_state->set('delete_queue', $delete_queue);
-    }
-    $form_state->setRebuild();
-  }
-
-  /**
-   * Saves the attribute values.
-   *
-   * @param array $form
-   *   An associative array containing the structure of the form.
-   * @param \Drupal\Core\Form\FormStateInterface $form_state
-   *   The current state of the form.
-   */
-  protected function saveValues(array $form, FormStateInterface $form_state) {
-    $delete_queue = $form_state->get('delete_queue');
-    if (!empty($delete_queue)) {
-      $value_storage = $this->entityTypeManager->getStorage('commerce_product_attribute_value');
-      $values = $value_storage->loadMultiple($delete_queue);
-      $value_storage->delete($values);
-    }
-
-    foreach ($form_state->getValue(['values']) as $index => $value_data) {
-      /** @var \Drupal\commerce\Plugin\Commerce\InlineForm\EntityInlineFormInterface $inline_form */
-      $inline_form = $form['values'][$index]['entity']['#inline_form'];
-      /** @var \Drupal\commerce_product\Entity\ProductAttributeValueInterface $value */
-      $value = $inline_form->getEntity();
-      $value->setWeight($value_data['weight']);
-      $value->save();
-    }
+  public function validateForm(array &$form, FormStateInterface $form_state) {
+    $this->validateTraitForm($form, $form_state);
   }
 
   /**
    * {@inheritdoc}
    */
   public function save(array $form, FormStateInterface $form_state) {
-
     $status = $this->entity->save();
     $this->submitTraitForm($form, $form_state);
     $original_variation_types = $form_state->getValue('original_variation_types', []);
@@ -445,7 +202,6 @@ class ProductAttributeForm extends CommerceBundleEntityFormBase {
       $form_state->setRedirectUrl($this->entity->toUrl('edit-form'));
     }
     else {
-      $this->saveValues($form, $form_state);
       $this->messenger()->addMessage($this->t('Updated the %label product attribute.', ['%label' => $this->entity->label()]));
       $form_state->setRedirectUrl($this->entity->toUrl('collection'));
     }

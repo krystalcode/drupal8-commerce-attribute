@@ -9,21 +9,18 @@ use Drupal\commerce\Plugin\Commerce\EntityTrait\EntityTraitBase;
  * Provides the price entity trait.
  *
  * @CommerceEntityTrait(
- *   id = "commerce_attribute_price",
- *   label = @Translation("Has Price"),
- *   entity_types = {"commerce_product_attribute_value"}
+ *   id = "commerce_attribute_variation_price",
+ *   label = @Translation("Attribute-based Pricing"),
+ *   entity_types = {"commerce_product_variation"}
  * )
  */
-class CommerceAttributePrice extends EntityTraitBase {
+class CommerceAttributeVariationPrice extends EntityTraitBase {
 
   /**
    * {@inheritdoc}
    */
   public function buildFieldDefinitions() {
     $fields = [];
-    $fields['price'] = BundleFieldDefinition::create('commerce_price')
-      ->setLabel(t('Price'))
-      ->setRequired(TRUE);
     return $fields;
   }
 
