@@ -15,12 +15,18 @@ use Drupal\commerce_product\Entity\ProductVariationType;
  * Implements hook_entity_type_alter().
  */
 function commerce_attribute_entity_type_alter(&$entity_types) {
-  $entity_types['commerce_product_attribute']->setClass('Drupal\commerce_attribute\Entity\ProductAttribute');
-  $entity_types['commerce_product_attribute_value']->setClass('Drupal\commerce_attribute\Entity\ProductAttributeValue');
-  $entity_types['commerce_product_attribute']->setFormClass('add', 'Drupal\commerce_attribute\Form\ProductAttributeForm');
-  $entity_types['commerce_product_attribute']->setFormClass('edit', 'Drupal\commerce_attribute\Form\ProductAttributeForm');
-  $entity_types['commerce_product_attribute_value']->setFormClass('add', 'Drupal\commerce_attribute\Form\ProductAttributeValueForm');
-  $entity_types['commerce_product_attribute_value']->setFormClass('edit', 'Drupal\commerce_attribute\Form\ProductAttributeValueForm');
+  $entity_types['commerce_product_attribute']
+    ->setClass('Drupal\commerce_attribute\Entity\ProductAttribute');
+  $entity_types['commerce_product_attribute_value']
+    ->setClass('Drupal\commerce_attribute\Entity\ProductAttributeValue');
+  $entity_types['commerce_product_attribute']
+    ->setFormClass('add', 'Drupal\commerce_attribute\Form\ProductAttributeForm');
+  $entity_types['commerce_product_attribute']
+    ->setFormClass('edit', 'Drupal\commerce_attribute\Form\ProductAttributeForm');
+  $entity_types['commerce_product_attribute_value']
+    ->setFormClass('add', 'Drupal\commerce_attribute\Form\ProductAttributeValueForm');
+  $entity_types['commerce_product_attribute_value']
+    ->setFormClass('edit', 'Drupal\commerce_attribute\Form\ProductAttributeValueForm');
 }
 
 /**
@@ -41,7 +47,8 @@ function commerce_attribute_commerce_product_attribute_value_update($attribute_v
     return;
   }
   // Updates the variation price associated with the attribute value.
-  \Drupal::service('commerce_attribute.variation_price_handler')->updateProductVariationsPrice($attribute_value);
+  \Drupal::service('commerce_attribute.variation_price_handler')
+    ->updateProductVariationsPrice($attribute_value);
 }
 
 /**
@@ -56,7 +63,8 @@ function commerce_attribute_commerce_product_variation_presave($variation) {
 
   // Updates the variation price to be the sum of its attributes which have has
   // price trait enabled.
-  $new_price = \Drupal::service('commerce_attribute.variation_price_handler')->recalculateVariationPrice($variation);
+  $new_price = \Drupal::service('commerce_attribute.variation_price_handler')
+    ->recalculateVariationPrice($variation);
   if (!empty($new_price)) {
     $variation->setPrice($new_price);
   }
@@ -70,13 +78,15 @@ function commerce_attribute_commerce_product_variation_type_presave($variation_t
 
   // Add base price field to product type if attribute pricing is enabled for
   // variation.
-  $product_type = \Drupal::service('commerce_attribute.variation_price_handler')->getProductTypes($variation_type->id());
+  $product_type = \Drupal::service('commerce_attribute.variation_price_handler')
+    ->getProductTypes($variation_type->id());
   $price_storage = FieldStorageConfig::loadByName('commerce_product', 'price');
   if (!$price_storage && $has_attribute_price_trait) {
     $field_definition = BundleFieldDefinition::create('commerce_price')
       ->setLabel(t('Price'))
       ->setRequired(TRUE)
-      ->setDisplayOptions('form', [
+      ->setDisplayOptions('form',
+        [
           'settings' => [
             'display_label' => TRUE,
           ],
@@ -85,7 +95,8 @@ function commerce_attribute_commerce_product_variation_type_presave($variation_t
     $field_definition->setTargetEntityTypeId('commerce_product');
     $field_definition->setTargetBundle($product_type->id());
     $field_definition->setName('price');
-    \Drupal::service('commerce.configurable_field_manager')->createField($field_definition);
+    \Drupal::service('commerce.configurable_field_manager')
+      ->createField($field_definition);
   }
   elseif ($price_storage && !$has_attribute_price_trait) {
     FieldStorageConfig::loadByName('commerce_product', 'price')->delete();

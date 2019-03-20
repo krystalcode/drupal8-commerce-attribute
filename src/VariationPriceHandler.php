@@ -175,7 +175,6 @@ class VariationPriceHandler {
    */
   public function getAllUsedAttributes() {
     $used_attributes = [];
-    $types = [];
     $variation_type_storage = $this->entityTypeManager->getStorage('commerce_product_variation_type');
     $variation_types = $variation_type_storage->loadMultiple();
     $attribute_field_map = $this->attributeFieldManager->getFieldMap();
@@ -229,11 +228,12 @@ class VariationPriceHandler {
   public function getProductTypes($variation_type_id) {
     $product_type_storage = $this->entityTypeManager->getStorage('commerce_product_type');
     $product_types = $product_type_storage->loadMultiple();
-    foreach ($product_types as $product_type_id => $product_type) {
+    foreach ($product_types as $product_type) {
       if ($variation_type_id == $product_type->getVariationTypeId()) {
         return $product_type;
       }
     }
     return NULL;
   }
+
 }
