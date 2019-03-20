@@ -236,5 +236,4 @@ class VariationPriceHandler {
     }
     return NULL;
   }
-
 }
