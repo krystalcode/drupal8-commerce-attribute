@@ -1,0 +1,28 @@
+{
+    "name": "drupal/commerce_attribute",
+    "type": "drupal-module",
+    "description": "A Drupal 8 module that provides advanced functionality related to product attributes.",
+    "keywords": ["Drupal"],
+    "license": "GPL-2.0+",
+    "homepage": "https://www.drupal.org/project/commerce_attribute",
+    "authors": [
+        {
+            "name": "krystalcode",
+            "homepage": "https://www.drupal.org/u/krystalcode",
+            "role": "Maintainer"
+        },
+        {
+            "name": "Safallia Joseph",
+            "homepage": "https://www.drupal.org/u/safallia-joseph",
+            "role": "Co-maintainer"
+        }
+    ],
+    "support": {
+        "issues": "https://www.drupal.org/project/issues/commerce_attribute",
+        "source": "http://cgit.drupalcode.org/commerce_attribute"
+    },
+    "require": {
+        "drupal/commerce": "^2.12"
+    },
+    "minimum-stability": "dev"
+}
