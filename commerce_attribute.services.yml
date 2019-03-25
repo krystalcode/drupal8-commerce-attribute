@@ -3,7 +3,6 @@ services:
     class: Drupal\commerce_attribute\VariationPriceHandler
     arguments:
       - '@logger.factory'
-      - '@entity.manager'
       - '@entity_type.manager'
       - '@commerce_product.attribute_field_manager'
       - '@entity.query'
