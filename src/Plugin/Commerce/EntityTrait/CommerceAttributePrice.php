@@ -2,8 +2,8 @@
 
 namespace Drupal\commerce_attribute\Plugin\Commerce\EntityTrait;
 
-use Drupal\entity\BundleFieldDefinition;
 use Drupal\commerce\Plugin\Commerce\EntityTrait\EntityTraitBase;
+use Drupal\entity\BundleFieldDefinition;
 
 /**
  * Provides the price entity trait.

@@ -2,15 +2,17 @@
 
 namespace Drupal\commerce_attribute;
 
+use Drupal\commerce_attribute\Entity\ProductAttribute;
+use Drupal\commerce_attribute\Entity\ProductAttributeValue;
 use Drupal\commerce_product\Entity\ProductVariation;
+use Drupal\commerce_product\ProductAttributeFieldManagerInterface;
 use Drupal\commerce_price\Price;
+
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\EntityManagerInterface;
-use Drupal\commerce_product\ProductAttributeFieldManagerInterface;
-use Drupal\Core\Logger\LoggerChannelFactoryInterface;
-use Drupal\commerce_attribute\Entity\ProductAttributeValue;
-use Drupal\commerce_attribute\Entity\ProductAttribute;
 use Drupal\Core\Entity\Query\QueryFactory;
+use Drupal\Core\Logger\LoggerChannelFactoryInterface;
+
 
 /**
  * Handles the Variation price calculations.

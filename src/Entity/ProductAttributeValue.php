@@ -2,11 +2,11 @@
 
 namespace Drupal\commerce_attribute\Entity;
 
-use Drupal\Core\Entity\EntityChangedTrait;
-use Drupal\Core\Entity\EntityTypeInterface;
-use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\commerce\Entity\CommerceContentEntityBase;
 use Drupal\commerce_product\Entity\ProductAttributeValueInterface;
+use Drupal\Core\Field\BaseFieldDefinition;
+use Drupal\Core\Entity\EntityChangedTrait;
+use Drupal\Core\Entity\EntityTypeInterface;
 
 /**
  * Defines the product attribute value entity class.
