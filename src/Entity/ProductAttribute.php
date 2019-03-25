@@ -42,7 +42,8 @@ use Drupal\commerce\Entity\CommerceBundleEntityBase;
  *     "id",
  *     "label",
  *     "elementType",
- *     "traits"
+ *     "traits",
+ *     "locked"
  *   },
  *   links = {
  *     "add-form" = "/admin/commerce/product-attributes/add",
