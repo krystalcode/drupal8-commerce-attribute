@@ -85,7 +85,10 @@ class ProductAttributeForm extends CommerceBundleEntityFormBase {
       '#maxlength' => EntityTypeInterface::BUNDLE_MAX_LENGTH - 10,
       '#disabled' => !$attribute->isNew(),
     ];
+
+    // Add in the trait form.
     $form = $this->buildTraitForm($form, $form_state);
+
     $form['elementType'] = [
       '#type' => 'select',
       '#title' => $this->t('Element type'),
@@ -161,7 +164,10 @@ class ProductAttributeForm extends CommerceBundleEntityFormBase {
    */
   public function save(array $form, FormStateInterface $form_state) {
     $status = $this->entity->save();
+
+    // Process traits.
     $this->submitTraitForm($form, $form_state);
+
     $original_variation_types = $form_state->getValue('original_variation_types', []);
     $variation_types = array_filter($form_state->getValue('variation_types', []));
     $disabled_variation_types = $form_state->getValue('disabled_variation_types', []);

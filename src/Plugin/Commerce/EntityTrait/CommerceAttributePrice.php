@@ -10,7 +10,7 @@ use Drupal\entity\BundleFieldDefinition;
  *
  * @CommerceEntityTrait(
  *   id = "commerce_attribute_price",
- *   label = @Translation("Has Price"),
+ *   label = @Translation("Adds price to the product's base price"),
  *   entity_types = {"commerce_product_attribute_value"}
  * )
  */
@@ -23,7 +23,13 @@ class CommerceAttributePrice extends EntityTraitBase {
     $fields = [];
     $fields['price'] = BundleFieldDefinition::create('commerce_price')
       ->setLabel(t('Price'))
-      ->setRequired(TRUE);
+      ->setDisplayOptions('form',
+        [
+          'settings' => [
+            'display_label' => TRUE,
+          ],
+        ])
+      ->setDisplayConfigurable('form', TRUE);
     return $fields;
   }
 

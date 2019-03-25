@@ -27,7 +27,6 @@ class ProductAttributeValueForm extends ContentEntityForm {
       ];
       $entity = $this->entityTypeManager->getStorage('commerce_product_attribute_value')->create($values);
     }
-
     return $entity;
   }
 
