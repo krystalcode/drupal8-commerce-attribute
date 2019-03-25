@@ -3,7 +3,7 @@
 namespace Drupal\commerce_attribute;
 
 use Drupal\commerce_attribute\Entity\ProductAttribute;
-use Drupal\commerce_product\Entity\ProductAttributeValue;
+use Drupal\commerce_attribute\Entity\ProductAttributeValue;
 use Drupal\commerce_product\Entity\ProductVariation;
 use Drupal\commerce_product\ProductAttributeFieldManagerInterface;
 use Drupal\commerce_price\Price;

@@ -231,8 +231,8 @@ display:
           exclude: false
           alter:
             alter_text: true
-            text: Edit
-            make_link: true
+            text: "<div><a href = \"/admin/commerce/product-attributes/manage/{{ arguments.attribute }}/values/{{ attribute_value_id }}/edit\"> Edit </a></div>\r\n<div><a href = \"/admin/commerce/product-attributes/manage/{{ arguments.attribute }}/values/{{ attribute_value_id }}/delete\"> Delete </a></div>"
+            make_link: false
             path: '/admin/commerce/product-attributes/manage/{{ arguments.attribute }}/values/{{ attribute_value_id }}/edit'
             absolute: false
             external: false
