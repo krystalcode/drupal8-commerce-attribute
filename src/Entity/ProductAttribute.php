@@ -56,20 +56,6 @@ use Drupal\commerce\Entity\CommerceBundleEntityBase;
 class ProductAttribute extends CommerceBundleEntityBase implements ProductAttributeInterface {
 
   /**
-   * The attribute ID.
-   *
-   * @var string
-   */
-  protected $id;
-
-  /**
-   * The attribute label.
-   *
-   * @var string
-   */
-  protected $label;
-
-  /**
    * The attribute element type.
    *
    * @var string
