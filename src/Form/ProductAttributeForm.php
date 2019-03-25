@@ -33,13 +33,6 @@ class ProductAttributeForm extends CommerceBundleEntityFormBase {
   protected $inlineFormManager;
 
   /**
-   * The trait manager.
-   *
-   * @var \Drupal\commerce\EntityTraitManagerInterface
-   */
-  protected $traitManager;
-
-  /**
    * Constructs a new ProductAttributeForm object.
    *
    * @param \Drupal\commerce_product\ProductAttributeFieldManagerInterface $attribute_field_manager
