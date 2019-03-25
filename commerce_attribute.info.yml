@@ -1,0 +1,7 @@
+name: Commerce Attribute
+type: module
+description: Provides price, stock and weight management at the product attribute level.
+package: Commerce (contrib)
+core: 8.x
+dependencies:
+  - commerce:commerce_product

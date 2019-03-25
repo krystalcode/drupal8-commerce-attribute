@@ -1,0 +1,5 @@
+entity.commerce_product_attribute_value.add_page:
+  route_name: commerce_attribute.commerce_product_attribute_value_add
+  title: 'Add attribute value'
+  appears_on:
+    - view.attribute_values.page_1
